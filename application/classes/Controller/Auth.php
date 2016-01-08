@@ -62,7 +62,7 @@ class Controller_Auth extends Controller_Core
                         Auth::instance()->force_login($user->username);
                     }
 
-                    $this->redirect($return, 301);
+                    $this->redirect('/kabinet', 301);
                 }
                 else
                 {
@@ -127,6 +127,9 @@ class Controller_Auth extends Controller_Core
     {
         $username = Security::xss_clean(Arr::get($_POST, 'username', ''));
         $email = Security::xss_clean(Arr::get($_POST, 'email', ''));
+        $class = Security::xss_clean(Arr::get($_POST, 'class', ''));
+        $vuz = Security::xss_clean(Arr::get($_POST, 'vuz', ''));
+        $radio = Security::xss_clean(Arr::get($_POST, 'radio', ''));
         $password = Security::xss_clean(Arr::get($_POST, 'password', ''));
         $password_confirm = Security::xss_clean(Arr::get($_POST, 'password_confirm', ''));
         $errors = NULL;
@@ -189,6 +192,9 @@ class Controller_Auth extends Controller_Core
                             $code = md5($date . $password);
                             $user = ORM::factory('User')->values(array('username' => $username,
                                                                       'email' => $email,
+                                                                      'class' => $class,
+                                                                      'vuz' => $vuz,
+                                                                      'role' => $radio,
                                                                       'password' => $password,
                                                                       'password_confirm' => $password_confirm,
                                                                       'network_reg' => 0,
@@ -196,13 +202,15 @@ class Controller_Auth extends Controller_Core
                                                                  ));
                             $extra_rules = Validation::factory($_POST)
                                 ->rule('password_confirm', 'matches', array(':validation', ':field', 'password'));
+
                             if ($extra_rules->check())
                             {
+//                                die($password);
                                 $user->save();
                                 Email::connect();
                                 Email::View('activate');
                                 Email::set(array('username' => $username, 'id' => $code, 'url' => str_replace('/auth/register','',URL::current(true))));
-                                Email::send($email, array('no-reply@e-history.kz', 'uchebnik.kz'), "Подтверждение регистрации на сайте uchebnik.kz", '', true);
+                                Email::send($email, array('no-reply@e-history.kz', 'e-history.kz'), "Подтверждение регистрации на сайте shkolkovo.kz", '', true);
                                 Message::success('На указанный email отправлено письмо со ссылкой на подтверждение регистрации.');
                                 $this->redirect('/',301);
                             }
@@ -358,7 +366,7 @@ class Controller_Auth extends Controller_Core
                 Db::insert('user_profiles', array('user_id', 'email'))->values(array($user->pk(), $user->email))->execute();
                 Auth::instance()->force_login($user->username);
                 Message::success('Регистрация на портале e-history.kz успешно подтверждена.');
-                $this->redirect('/',301);
+                $this->redirect('/kabinet',301);
             }
             else
                 throw new HTTP_Exception_404('Page not found');

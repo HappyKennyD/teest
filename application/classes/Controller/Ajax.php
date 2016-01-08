@@ -8,6 +8,35 @@ class Controller_Ajax extends Controller
         return TRUE;
     }
 
+    public function action_questedit()
+    {
+        if (isset($_POST['id']) && !empty($_POST['id'])){
+            $subthemes = array();
+            $my_html = '';
+            $id = intval($_POST['id']);
+            $result = ORM::factory('Subthemes')->where('id_themes', '=', $id)->find_all();
+//            $this->set('query',$query);
+            foreach ($result as $r) {
+                $my_array = array("title"=>$r->title,"id"=>$r->id);
+                array_push($subthemes,$my_array);
+                $my_html .= '<option value="'.$r->id.'" > '.$r->title.' </option>';
+
+            }
+//            $data['id'] = $id;
+//            $data['result'] = $subthemes;
+            $data = $subthemes;
+            $data['html'] = $my_html;
+        }
+        else{
+//            die($_POST['id']);
+            $data['result'] = 'ID NOT FOUND';
+        }
+
+        $doc = $this->response->body(json_encode($data));
+//        $doc2 = $this->response->body(utf8_decode($data['result']));
+//        $this->response->body(utf8_decode($doc));
+    }
+
     public function action_points()
     {
         $lang = $this->request->param('language', 'ru');

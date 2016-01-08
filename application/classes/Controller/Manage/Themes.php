@@ -1,11 +1,11 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
-class Controller_Manage_Tests extends Controller_Manage_Core {
+class Controller_Manage_Themes extends Controller_Manage_Core {
 
 	public function action_index()
 	{
-        $kt = ORM::factory('kt')->order_by('id')->find_all();
-        $this->set('kt', $kt);
+        $themes = ORM::factory('themes')->order_by('id')->find_all();
+        $this->set('themes', $themes);
 	}
 
     public function action_addvar()
@@ -128,9 +128,6 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
         array_walk($params, 'intval');
         $ent_id = $params[0];
 //        die($ent_id);
-        $themes = ORM:: factory('Themes')->find_all();
-        $this->set('themes',$themes);
-
         if (isset($params[1]))
         {
             $quest_id = $params[1];
@@ -159,8 +156,6 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
                 $number = $numbers->number + 1;
                 $quest->quest = Security::xss_clean(Arr::get($_POST, 'text', ''));
                 $quest->id_vk = $ent_id;
-                $quest->id_subthemes = Security::xss_clean(Arr::get($_POST, 'subthemes', ''));
-                $quest->answer = Security::xss_clean(Arr::get($_POST, 'answer', ''));
                 if (!isset($params[1])) $quest->number = $number;
                 $quest->published = 1;
                 $quest->save();
@@ -273,62 +268,30 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
 
     public function action_addedit()
     {
-//        $id = $this->request->param('id', 0);
-//        $params = explode('-', $id);
-//        array_walk($params, 'intval');
-//        $ent_id = $params[0];
-//        if (isset($params[1]))
-//        {
-//            $quest_id = $params[1];
-//            $quest = ORM::factory('Vk', $quest_id);
-//        }
-//        else
-//        {
-//            $quest = ORM::factory('Vk');
-//        }
-//        $kt = ORM::factory('kt', $ent_id);
-//
-//        $this->set('quest', $quest);
-//
-//        if ( !$kt->loaded() )
-//        {
-//            throw new HTTP_Exception_404;
-//        }
-//        $this->set('kt', $kt);
-//        if($id){
-//            $vk = ORM::factory('Vk', $id);
-//            $this->set('vk', $vk);
-//        }
-//        else{
-//        }
-//        if ($this->request->method() == 'POST')
-//        {
-//            $title = Security::xss_clean(Arr::get($_POST, 'title', ''));
-//            try
-//            {
-//                $vk=ORM::factory('vk', $id);
-//                $vk->id_kt = $ent_id;
-//                $vk->title = $title;
-//                $vk->published = 1;
-//                $vk->date=date("Y-m-d H:i:s");
-//                $vk->save();
-//
-//                $event = ($id)?'edit':'create';
-//                $loger = new Loger($event,$vk->title);
-//                $loger->log($vk);
-//
-//                $this->redirect('manage/tests/addvar/'.$ent_id);
-//            }
-//            catch (ORM_Validation_Exception $e)
-//            {
-//                $errors = $e->errors($e->alias());
-//                $this->set('errors',$errors);
-//            }
-//        }
-        $id = (int) $this->request->param('id', 0);
+        $id = $this->request->param('id', 0);
+        $params = explode('-', $id);
+        array_walk($params, 'intval');
+        $ent_id = $params[0];
+        if (isset($params[1]))
+        {
+            $quest_id = $params[1];
+            $quest = ORM::factory('Qv', $quest_id);
+        }
+        else
+        {
+            $quest = ORM::factory('Qv');
+        }
+        $kt = ORM::factory('kt', $ent_id);
 
+        $this->set('quest', $quest);
+
+        if ( !$kt->loaded() )
+        {
+            throw new HTTP_Exception_404;
+        }
+        $this->set('kt', $kt);
         if($id){
-            $vk = ORM::factory('vk', $id);
+            $vk = ORM::factory('Vk', $id);
             $this->set('vk', $vk);
         }
         else{
@@ -339,7 +302,9 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
             try
             {
                 $vk=ORM::factory('vk', $id);
+                $vk->id_kt = $ent_id;
                 $vk->title = $title;
+                $vk->published = 1;
                 $vk->date=date("Y-m-d H:i:s");
                 $vk->save();
 
@@ -347,7 +312,7 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
                 $loger = new Loger($event,$vk->title);
                 $loger->log($vk);
 
-                $this->redirect('manage/tests/addvar/'.$vk->id_kt);
+                $this->redirect('manage/tests/addvar/'.$ent_id);
             }
             catch (ORM_Validation_Exception $e)
             {
@@ -388,30 +353,7 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
     public function action_published()
     {
         $id = $this->request->param('id', 0);
-        $ent = ORM::factory('kt', $id);
-        if ( !$ent->loaded() )
-        {
-            throw new HTTP_Exception_404;
-        }
-        if ( $ent->published )
-        {
-            $ent->published = 0;
-            $ent->save();
-            Message::success(I18n::get('Категория скрыта'));
-        }
-        else
-        {
-            $ent->published = 1;
-            $ent->save();
-            Message::success(I18n::get('Категория опубликована'));
-        }
-        $this->redirect('manage/tests/');
-    }
-
-    public function action_publishedvk()
-    {
-        $id = $this->request->param('id', 0);
-        $ent = ORM::factory('vk', $id);
+        $ent = ORM::factory('Test_variant', $id);
         if ( !$ent->loaded() )
         {
             throw new HTTP_Exception_404;
@@ -428,13 +370,13 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
             $ent->save();
             Message::success(I18n::get('Variant unhided'));
         }
-        $this->redirect('manage/tests/addvar/'.$ent->id_kt);
+        $this->redirect('manage/tests/');
     }
 
     public function action_delete()
     {
         $id = (int) $this->request->param('id', 0);
-        $ent = ORM::factory('kt', $id);
+        $ent = ORM::factory('Test_variant', $id);
         if (!$ent->loaded())
         {
             throw new HTTP_Exception_404;
@@ -499,7 +441,7 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
     public function action_variantdelete()
     {
         $id = (int) $this->request->param('id', 0);
-        $variant = ORM::factory('aq', $id);
+        $variant = ORM::factory('Test_Questvar', $id);
         if ( !$variant->loaded() )
         {
             throw new HTTP_Exception_404;
@@ -507,21 +449,21 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
         $token = Arr::get($_POST, 'token', false);
         if (($this->request->method() == Request::POST) && Security::token() === $token)
         {
-            $quest_id = $variant->id_qv;
+            $quest_id = $variant->quests_id;
             $variant->delete();
             Message::success(I18n::get('Record deleted'));
             $this->redirect('manage/tests/variants/'.$quest_id);
         }
         else
         {
-            $this->set('record', $variant)->set('token', Security::token(true))->set('cancel_url', Url::media('manage/tests/variants/'.$variant->id_qv));
+            $this->set('record', $variant)->set('token', Security::token(true))->set('cancel_url', Url::media('manage/tests/variants/'.$variant->quest_id));
         }
     }
 
     public function action_questpublish()
     {
         $id = $this->request->param('id', 0);
-        $quest = ORM::factory('qv', $id);
+        $quest = ORM::factory('Test_Quests', $id);
         if ( !$quest->loaded() )
         {
             throw new HTTP_Exception_404;
@@ -530,21 +472,21 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
         {
             $quest->published = 0;
             $quest->save();
-            Message::success(I18n::get('Задача скрыта'));
+            Message::success(I18n::get('Quest hided'));
         }
         else
         {
             $quest->published = 1;
             $quest->save();
-            Message::success(I18n::get('Задача опубликована'));
+            Message::success(I18n::get('Quest unhided'));
         }
-        $this->redirect('manage/tests/quests/'.$quest->id_vk);
+        $this->redirect('manage/tests/quests/'.$quest->test_variant_id);
     }
 
     public function action_variantpublish()
     {
         $id = $this->request->param('id', 0);
-        $variant = ORM::factory('aq', $id);
+        $variant = ORM::factory('Test_Questvar', $id);
         if ( !$variant->loaded() )
         {
             throw new HTTP_Exception_404;
@@ -553,15 +495,15 @@ class Controller_Manage_Tests extends Controller_Manage_Core {
         {
             $variant->published = 0;
             $variant->save();
-            Message::success(I18n::get('Ответ скрыт'));
+            Message::success(I18n::get('Variant hided'));
         }
         else
         {
             $variant->published = 1;
             $variant->save();
-            Message::success(I18n::get('Ответ опубликован'));
+            Message::success(I18n::get('Variant unhided'));
         }
-        $this->redirect('manage/tests/variants/'.$variant->id_qv);
+        $this->redirect('manage/tests/variants/'.$variant->quests_id);
     }
 
 

@@ -34,7 +34,7 @@ class Controller_Manage_Slogans extends Controller_Manage_Core
                     $errors = $e->errors($e->alias());
                     $this->set('errors',$errors);
                 }
-            }z
+            }
 
             $this->redirect('manage/slogans/');
 
